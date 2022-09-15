@@ -5,6 +5,8 @@ import readService.ReadFileService;
 import server.BasicServer;
 
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
 
@@ -22,14 +24,23 @@ public class VoteMachine extends BasicServer {
 
         registerGet("/", this::mainHandler);
 
-        registerPost("/votes", this::vote);
+        registerPost("/vote", this::vote);
 
         registerGet("/doubleVote", this::doubleVoteHandler);
+        registerGet("/votes", this::votesHandler);
+//        registerGet("/thanks", this::);
+    }
+
+    private void votesHandler(HttpExchange exchange) {
+        List<Candidate> candidates1=new ArrayList<>(candidates.getCandidates());
+        candidates1.sort(Comparator.comparingDouble(Candidate::getPercent).reversed());
+        candidates.setCandidates(candidates1);
+        renderTemplate(exchange, "votes.html",candidates);
     }
 
 
     private void mainHandler(HttpExchange exchange) {
-        renderTemplate(exchange, "candidates.html", candidates);
+        renderTemplate(exchange, "/candidates.html", candidates);
     }
 
     private void doubleVoteHandler(HttpExchange exchange) {
@@ -45,23 +56,23 @@ public class VoteMachine extends BasicServer {
 
             Candidate candidate = null;
 
-            for (Candidate candidates : candidates.getCandidates()) {
-                if (candidates.getId() == Integer.parseInt(parsed.get("id"))) {
-                    candidate = candidates;
-                    int vote = candidates.getVotes();
-                    candidates.setVotes(vote +1);
+            for (Candidate candidate1 : candidates.getCandidates()) {
+                if (candidate1.getId() == Integer.parseInt(parsed.get("id"))) {
+                    candidate = candidate1;
+                    int vote = candidate1.getVotes();
+                    candidate1.setVotes(vote +1);
                     break;
                 }
             }
 
-            assert candidate != null;
-            int votesPercent = countVotes(candidate.getVotes());
+            if (candidate != null) {
+                int votesPercent = countVotes(candidate.getVotes());
 
-            candidate.setPercent(votesPercent);
-
-            renderTemplate(exchange, "votes.html", candidate);
-
+                candidate.setPercent(votesPercent);
+//            redirect303(exchange, "/thanks");
+            }
             canVote = false;
+            renderTemplate(exchange, "thanks.html", candidate);
 
 
         } else {

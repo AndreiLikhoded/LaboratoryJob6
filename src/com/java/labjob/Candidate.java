@@ -11,10 +11,10 @@ public class Candidate {
 
 
 
-    public Candidate(Integer id, String firstName, String picture, int votes) {
+    public Candidate(Integer id, String firstName, String photo, int votes) {
         this.id = id;
         this.name = firstName;
-        this.photo = picture;
+        this.photo = photo;
         this.votes = votes;
     }
 
